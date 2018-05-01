@@ -10,5 +10,6 @@ func TestTimeUnixMillisecond(t *testing.T) {
 	t2 := TimeUnixMillisecond(t1.Unix()*1000 + 789)
 	if d := t2.Sub(t1); d != 0 {
 		t.Errorf("have:%v, want:%v", d, time.Duration(0))
+		return
 	}
 }

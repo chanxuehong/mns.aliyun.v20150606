@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
@@ -18,7 +17,6 @@ func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.H
 	if httpMethod == "" {
 		httpMethod = http.MethodGet
 	}
-	_url.Host = removeEmptyPort(_url.Host)
 	if header == nil {
 		header = make(http.Header, 8)
 	}
@@ -70,16 +68,3 @@ func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.H
 	requestId = resp.Header.Get("X-Mns-Request-Id")
 	return requestId, resp.StatusCode, respBuffer.Bytes(), nil
 }
-
-// removeEmptyPort strips the empty port in ":port" to ""
-// as mandated by RFC 3986 Section 6.2.3.
-func removeEmptyPort(host string) string {
-	if hasPort(host) {
-		return strings.TrimSuffix(host, ":")
-	}
-	return host
-}
-
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
