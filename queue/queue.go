@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
 	"github.com/chanxuehong/mns.aliyun.v20150606/internal"
@@ -228,6 +229,12 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 	if waitSeconds < 0 || waitSeconds > 30 {
 		waitSeconds = 30
 	}
+	config := q.config
+	if waitSeconds == 0 {
+		config.Timeout = (30 + 10) * time.Second
+	} else {
+		config.Timeout = time.Duration(waitSeconds+10) * time.Second
+	}
 
 	rawurl := q.queue + "/messages"
 	if waitSeconds > 0 {
@@ -241,7 +248,7 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
-	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, q.config)
+	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, config)
 	if err != nil {
 		return
 	}
@@ -282,6 +289,12 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 	if waitSeconds < 0 || waitSeconds > 30 {
 		waitSeconds = 30
 	}
+	config := q.config
+	if waitSeconds == 0 {
+		config.Timeout = (30 + 10) * time.Second
+	} else {
+		config.Timeout = time.Duration(waitSeconds+10) * time.Second
+	}
 
 	rawurl := q.queue + "/messages?numOfMessages=" + strconv.Itoa(numOfMessages)
 	if waitSeconds > 0 {
@@ -295,7 +308,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
-	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, q.config)
+	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, config)
 	if err != nil {
 		return
 	}
