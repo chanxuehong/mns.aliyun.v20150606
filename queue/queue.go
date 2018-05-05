@@ -230,10 +230,16 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 		waitSeconds = 30
 	}
 	config := q.config
-	if waitSeconds == 0 {
-		config.Timeout = (30 + 10) * time.Second
-	} else {
-		config.Timeout = time.Duration(waitSeconds+10) * time.Second
+	if config.Timeout > 0 {
+		var timeout time.Duration
+		if waitSeconds == 0 {
+			timeout = (30 + 10) * time.Second
+		} else {
+			timeout = time.Duration(waitSeconds+10) * time.Second
+		}
+		if config.Timeout < timeout {
+			config.Timeout = timeout
+		}
 	}
 
 	rawurl := q.queue + "/messages"
@@ -290,10 +296,16 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 		waitSeconds = 30
 	}
 	config := q.config
-	if waitSeconds == 0 {
-		config.Timeout = (30 + 10) * time.Second
-	} else {
-		config.Timeout = time.Duration(waitSeconds+10) * time.Second
+	if config.Timeout > 0 {
+		var timeout time.Duration
+		if waitSeconds == 0 {
+			timeout = (30 + 10) * time.Second
+		} else {
+			timeout = time.Duration(waitSeconds+10) * time.Second
+		}
+		if config.Timeout < timeout {
+			config.Timeout = timeout
+		}
 	}
 
 	rawurl := q.queue + "/messages?numOfMessages=" + strconv.Itoa(numOfMessages)
