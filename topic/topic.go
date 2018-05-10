@@ -1,7 +1,6 @@
 package topic
 
 import (
-	"bytes"
 	"context"
 	"encoding/xml"
 	"errors"
@@ -69,7 +68,7 @@ func (t *Topic) PublishMessageContext(ctx context.Context, msg *PublishMessageRe
 		return
 	}
 
-	reqBuffer := internal.BufferPool.Get().(*bytes.Buffer)
+	reqBuffer := internal.BufferPool.Get()
 	defer internal.BufferPool.Put(reqBuffer)
 	reqBuffer.Reset()
 	if err = xml.NewEncoder(reqBuffer).Encode(msg); err != nil {
@@ -77,7 +76,7 @@ func (t *Topic) PublishMessageContext(ctx context.Context, msg *PublishMessageRe
 	}
 	reqBody := reqBuffer.Bytes()
 
-	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
+	respBuffer := internal.BufferPool.Get()
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodPost, _url, nil, reqBody, respBuffer, t.config)
