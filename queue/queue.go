@@ -69,7 +69,7 @@ func (q *Queue) SendMessageContext(ctx context.Context, msg *SendMessageRequest)
 		return
 	}
 
-	reqBuffer := internal.BufferPool.Get()
+	reqBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(reqBuffer)
 	reqBuffer.Reset()
 	if err = xml.NewEncoder(reqBuffer).Encode(msg); err != nil {
@@ -77,7 +77,7 @@ func (q *Queue) SendMessageContext(ctx context.Context, msg *SendMessageRequest)
 	}
 	reqBody := reqBuffer.Bytes()
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodPost, _url, nil, reqBody, respBuffer, q.config)
@@ -150,7 +150,7 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 		Messages: msgs,
 	}
 
-	reqBuffer := internal.BufferPool.Get()
+	reqBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(reqBuffer)
 	reqBuffer.Reset()
 	if err = xml.NewEncoder(reqBuffer).Encode(&req); err != nil {
@@ -158,7 +158,7 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 	}
 	reqBody := reqBuffer.Bytes()
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodPost, _url, nil, reqBody, respBuffer, q.config)
@@ -251,7 +251,7 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, config)
@@ -317,7 +317,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, config)
@@ -386,7 +386,7 @@ func (q *Queue) PeekMessageContext(ctx context.Context) (requestId string, msg *
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, q.config)
@@ -433,7 +433,7 @@ func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) 
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodGet, _url, nil, nil, respBuffer, q.config)
@@ -490,7 +490,7 @@ func (q *Queue) DeleteMessageContext(ctx context.Context, receiptHandle string) 
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodDelete, _url, nil, nil, respBuffer, q.config)
@@ -538,7 +538,7 @@ func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []
 		ReceiptHandles: receiptHandles,
 	}
 
-	reqBuffer := internal.BufferPool.Get()
+	reqBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(reqBuffer)
 	reqBuffer.Reset()
 	if err = xml.NewEncoder(reqBuffer).Encode(&req); err != nil {
@@ -546,7 +546,7 @@ func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []
 	}
 	reqBody := reqBuffer.Bytes()
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodDelete, _url, nil, reqBody, respBuffer, q.config)
@@ -595,7 +595,7 @@ func (q *Queue) ChangeMessageVisibilityContext(ctx context.Context, receiptHandl
 		return
 	}
 
-	respBuffer := internal.BufferPool.Get()
+	respBuffer := internal.BufferPool.Get().(*bytes.Buffer)
 	defer internal.BufferPool.Put(respBuffer)
 	respBuffer.Reset()
 	requestId, statusCode, respBody, err := internal.DoHTTP(ctx, http.MethodPut, _url, nil, nil, respBuffer, q.config)

@@ -2,12 +2,13 @@ package internal
 
 import (
 	"bytes"
-
-	"github.com/chanxuehong/pool"
+	"sync"
 )
 
-var BufferPool = pool.NewBytesBufferPool(100, newBuffer)
+var BufferPool = sync.Pool{
+	New: newBuffer,
+}
 
-func newBuffer() *bytes.Buffer {
+func newBuffer() interface{} {
 	return bytes.NewBuffer(make([]byte, 0, 16<<10))
 }
