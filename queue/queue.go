@@ -91,6 +91,7 @@ func (q *Queue) SendMessageContext(ctx context.Context, msg *SendMessageRequest)
 	case statusCode/100 == 2:
 		var result SendMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		if want := internal.MessageBodyMD5(msg.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
@@ -184,6 +185,7 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 			Messages []BatchSendMessageResponseItem `xml:"Message"`
 		}
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		if len(req.Messages) != len(result.Messages) {
@@ -268,6 +270,7 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 	case statusCode/100 == 2:
 		var result Message
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		if want := internal.MessageBodyMD5(result.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
@@ -339,6 +342,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 			Messages []Message `xml:"Message"`
 		}
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		resultMessages := result.Messages
@@ -405,6 +409,7 @@ func (q *Queue) PeekMessageContext(ctx context.Context) (requestId string, msg *
 	case statusCode/100 == 2:
 		var result PeekMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		if want := internal.MessageBodyMD5(result.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
@@ -457,6 +462,7 @@ func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) 
 			Messages []PeekMessageResponse `xml:"Message"`
 		}
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		resultMessages := result.Messages
@@ -576,6 +582,7 @@ func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []
 				Errors []BatchDeleteMessageErrorItem `xml:"Error"`
 			}
 			if err = xml.Unmarshal(respBody, &result); err != nil {
+				err = internal.NewXMLUnmarshalError(respBody, &result, err)
 				return
 			}
 			_errors = result.Errors
@@ -619,6 +626,7 @@ func (q *Queue) ChangeMessageVisibilityContext(ctx context.Context, receiptHandl
 	case statusCode/100 == 2:
 		var result ChangeMessageVisibilityResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		resp = &result

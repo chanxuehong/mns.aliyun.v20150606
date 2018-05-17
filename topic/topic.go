@@ -90,6 +90,7 @@ func (t *Topic) PublishMessageContext(ctx context.Context, msg *PublishMessageRe
 	case statusCode/100 == 2:
 		var result PublishMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
+			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
 		}
 		if want := internal.MessageBodyMD5(msg.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
