@@ -1,24 +1,9 @@
 package internal
 
 import (
-	"encoding/xml"
+	"encoding/base64"
 	"reflect"
-
-	"github.com/chanxuehong/mns.aliyun.v20150606"
 )
-
-// UnmarshalError unmarshal error response.
-func UnmarshalError(requestId string, statusCode int, body []byte) error {
-	var result mns.Error
-	if err := xml.Unmarshal(body, &result); err != nil {
-		return NewXMLUnmarshalError(body, &result, err)
-	}
-	if result.RequestId == "" {
-		result.RequestId = requestId
-	}
-	result.HttpStatusCode = statusCode
-	return &result
-}
 
 func NewXMLUnmarshalError(data []byte, v interface{}, err error) error {
 	return &XMLUnmarshalError{
@@ -35,5 +20,23 @@ type XMLUnmarshalError struct {
 }
 
 func (e *XMLUnmarshalError) Error() string {
-	return "xml: cannot unmarshal " + string(e.Data) + " into Go value of type " + e.Type.String() + ": " + e.Err.Error()
+	return "cannot unmarshal xml " + string(e.Data) + " into Go value of type " + e.Type.String() + ", " + e.Err.Error()
+}
+
+func NewMessageBodyMD5MismatchError(messageBody []byte, have, want string) error {
+	return &MessageBodyMD5MismatchError{
+		MessageBody: messageBody,
+		Have:        have,
+		Want:        want,
+	}
+}
+
+type MessageBodyMD5MismatchError struct {
+	MessageBody []byte
+	Have        string
+	Want        string
+}
+
+func (e *MessageBodyMD5MismatchError) Error() string {
+	return "the MessageBodyMD5 mismatch, have: " + e.Have + ", want: " + e.Want + ", base64(MessageBodyMD5): " + base64.StdEncoding.EncodeToString(e.MessageBody)
 }

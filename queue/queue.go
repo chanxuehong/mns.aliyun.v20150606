@@ -95,13 +95,13 @@ func (q *Queue) SendMessageContext(ctx context.Context, msg *SendMessageRequest)
 			return
 		}
 		if want := internal.MessageBodyMD5(msg.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
-			err = fmt.Errorf("the MessageBodyMD5 mismatch, have:%s, want:%s", result.MessageBodyMD5, want)
+			err = internal.NewMessageBodyMD5MismatchError(msg.MessageBody, result.MessageBodyMD5, want)
 			return
 		}
 		resp = &result
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -180,7 +180,7 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 	switch {
 	case statusCode == 500:
 		if !(bytes.Contains(respBody, []byte(`</Messages>`)) && bytes.Contains(respBody, []byte(`</Message>`))) {
-			err = internal.UnmarshalError(requestId, statusCode, respBody)
+			err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 			return
 		}
 		fallthrough // 只发送了部分消息
@@ -203,14 +203,14 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 			}
 			want := internal.MessageBodyMD5(reqMessages[i].MessageBody)
 			if strings.ToUpper(resultMessages[i].MessageBodyMD5) != want {
-				err = fmt.Errorf("the %d'th MessageBodyMD5 mismatch, have:%s, want:%s", i, resultMessages[i].MessageBodyMD5, want)
+				err = internal.NewMessageBodyMD5MismatchError(reqMessages[i].MessageBody, resultMessages[i].MessageBodyMD5, want)
 				return
 			}
 		}
 		resp = result.Messages
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -276,7 +276,7 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 			return
 		}
 		if want := internal.MessageBodyMD5(result.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
-			err = fmt.Errorf("the MessageBodyMD5 mismatch, have:%s, want:%s", result.MessageBodyMD5, want)
+			err = internal.NewMessageBodyMD5MismatchError(result.MessageBody, result.MessageBodyMD5, want)
 			return
 		}
 		if q.config.Base64Enabled && len(result.MessageBody) > 0 {
@@ -289,7 +289,7 @@ func (q *Queue) ReceiveMessageContext(ctx context.Context, waitSeconds int) (req
 		msg = &result
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -353,7 +353,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 		for i := range resultMessages {
 			want := internal.MessageBodyMD5(resultMessages[i].MessageBody)
 			if strings.ToUpper(resultMessages[i].MessageBodyMD5) != want {
-				err = fmt.Errorf("the %d'th MessageBodyMD5 mismatch, have:%s, want:%s", i, resultMessages[i].MessageBodyMD5, want)
+				err = internal.NewMessageBodyMD5MismatchError(resultMessages[i].MessageBody, resultMessages[i].MessageBodyMD5, want)
 				return
 			}
 		}
@@ -373,7 +373,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 		msgs = result.Messages
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -417,7 +417,7 @@ func (q *Queue) PeekMessageContext(ctx context.Context) (requestId string, msg *
 			return
 		}
 		if want := internal.MessageBodyMD5(result.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
-			err = fmt.Errorf("the MessageBodyMD5 mismatch, have:%s, want:%s", result.MessageBodyMD5, want)
+			err = internal.NewMessageBodyMD5MismatchError(result.MessageBody, result.MessageBodyMD5, want)
 			return
 		}
 		if q.config.Base64Enabled && len(result.MessageBody) > 0 {
@@ -430,7 +430,7 @@ func (q *Queue) PeekMessageContext(ctx context.Context) (requestId string, msg *
 		msg = &result
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -475,7 +475,7 @@ func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) 
 		for i := range resultMessages {
 			want := internal.MessageBodyMD5(resultMessages[i].MessageBody)
 			if strings.ToUpper(resultMessages[i].MessageBodyMD5) != want {
-				err = fmt.Errorf("the %d'th MessageBodyMD5 mismatch, have:%s, want:%s", i, resultMessages[i].MessageBodyMD5, want)
+				err = internal.NewMessageBodyMD5MismatchError(resultMessages[i].MessageBody, resultMessages[i].MessageBodyMD5, want)
 				return
 			}
 		}
@@ -495,7 +495,7 @@ func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) 
 		msgs = result.Messages
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -523,7 +523,7 @@ func (q *Queue) DeleteMessageContext(ctx context.Context, receiptHandle string) 
 	case statusCode/100 == 2:
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -598,7 +598,7 @@ func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []
 		}
 		fallthrough // QueueNotExist
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
@@ -640,7 +640,7 @@ func (q *Queue) ChangeMessageVisibilityContext(ctx context.Context, receiptHandl
 		resp = &result
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }

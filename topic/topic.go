@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -94,13 +93,13 @@ func (t *Topic) PublishMessageContext(ctx context.Context, msg *PublishMessageRe
 			return
 		}
 		if want := internal.MessageBodyMD5(msg.MessageBody); strings.ToUpper(result.MessageBodyMD5) != want {
-			err = fmt.Errorf("the MessageBodyMD5 mismatch, have:%s, want:%s", result.MessageBodyMD5, want)
+			err = internal.NewMessageBodyMD5MismatchError(msg.MessageBody, result.MessageBodyMD5, want)
 			return
 		}
 		resp = &result
 		return
 	default:
-		err = internal.UnmarshalError(requestId, statusCode, respBody)
+		err = internal.UnmarshalErrorResponse(requestId, statusCode, respBody)
 		return
 	}
 }
