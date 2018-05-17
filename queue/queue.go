@@ -123,6 +123,12 @@ func (q *Queue) BatchSendMessage(msgs []SendMessageRequest) (requestId string, r
 	return q.BatchSendMessageContext(context.Background(), msgs)
 }
 
+type batchSendMessageResponse struct {
+	XMLName struct{} `xml:"Messages"`
+
+	Messages []BatchSendMessageResponseItem `xml:"Message"`
+}
+
 func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageRequest) (requestId string, resp []BatchSendMessageResponseItem, err error) {
 	if len(msgs) < 1 || len(msgs) > 16 {
 		err = errors.New("the length of msgs is invalid")
@@ -179,11 +185,7 @@ func (q *Queue) BatchSendMessageContext(ctx context.Context, msgs []SendMessageR
 		}
 		fallthrough // 只发送了部分消息
 	case statusCode/100 == 2:
-		var result struct {
-			XMLName struct{} `xml:"Messages"`
-
-			Messages []BatchSendMessageResponseItem `xml:"Message"`
-		}
+		var result batchSendMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
 			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
@@ -296,6 +298,12 @@ func (q *Queue) BatchReceiveMessage(numOfMessages, waitSeconds int) (requestId s
 	return q.BatchReceiveMessageContext(context.Background(), numOfMessages, waitSeconds)
 }
 
+type batchReceiveMessageResponse struct {
+	XMLName struct{} `xml:"Messages"`
+
+	Messages []Message `xml:"Message"`
+}
+
 func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, waitSeconds int) (requestId string, msgs []Message, err error) {
 	if numOfMessages < 1 || numOfMessages > 16 {
 		numOfMessages = 16
@@ -336,11 +344,7 @@ func (q *Queue) BatchReceiveMessageContext(ctx context.Context, numOfMessages, w
 
 	switch {
 	case statusCode/100 == 2:
-		var result struct {
-			XMLName struct{} `xml:"Messages"`
-
-			Messages []Message `xml:"Message"`
-		}
+		var result batchReceiveMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
 			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
@@ -435,6 +439,12 @@ func (q *Queue) BatchPeekMessage(numOfMessages int) (requestId string, msgs []Pe
 	return q.BatchPeekMessageContext(context.Background(), numOfMessages)
 }
 
+type batchPeekMessageResponse struct {
+	XMLName struct{} `xml:"Messages"`
+
+	Messages []PeekMessageResponse `xml:"Message"`
+}
+
 func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) (requestId string, msgs []PeekMessageResponse, err error) {
 	if numOfMessages < 1 || numOfMessages > 16 {
 		numOfMessages = 16
@@ -456,11 +466,7 @@ func (q *Queue) BatchPeekMessageContext(ctx context.Context, numOfMessages int) 
 
 	switch {
 	case statusCode/100 == 2:
-		var result struct {
-			XMLName struct{} `xml:"Messages"`
-
-			Messages []PeekMessageResponse `xml:"Message"`
-		}
+		var result batchPeekMessageResponse
 		if err = xml.Unmarshal(respBody, &result); err != nil {
 			err = internal.NewXMLUnmarshalError(respBody, &result, err)
 			return
@@ -534,6 +540,12 @@ func (q *Queue) BatchDeleteMessage(receiptHandles []string) (requestId string, _
 	return q.BatchDeleteMessageContext(context.Background(), receiptHandles)
 }
 
+type batchDeleteMessageResponse struct {
+	XMLName struct{} `xml:"Errors"`
+
+	Errors []BatchDeleteMessageErrorItem `xml:"Error"`
+}
+
 func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []string) (requestId string, _errors []BatchDeleteMessageErrorItem, err error) {
 	if len(receiptHandles) < 1 || len(receiptHandles) > 16 {
 		err = errors.New("the length of receiptHandles is invalid")
@@ -576,11 +588,7 @@ func (q *Queue) BatchDeleteMessageContext(ctx context.Context, receiptHandles []
 		return
 	case statusCode == 404:
 		if bytes.Contains(respBody, []byte(`</Errors>`)) && bytes.Contains(respBody, []byte(`<ReceiptHandle>`)) { // 部分消息删除失败
-			var result struct {
-				XMLName struct{} `xml:"Errors"`
-
-				Errors []BatchDeleteMessageErrorItem `xml:"Error"`
-			}
+			var result batchDeleteMessageResponse
 			if err = xml.Unmarshal(respBody, &result); err != nil {
 				err = internal.NewXMLUnmarshalError(respBody, &result, err)
 				return
