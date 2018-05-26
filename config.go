@@ -3,6 +3,8 @@ package mns
 import (
 	"net/http"
 	"time"
+
+	"github.com/chanxuehong/mns.aliyun.v20150606/log"
 )
 
 type Config struct {
@@ -13,9 +15,5 @@ type Config struct {
 	Timeout       time.Duration
 	Base64Enabled bool
 	HttpClient    *http.Client
-	Logger        Logger
-}
-
-type Logger interface {
-	Errorf(format string, args ...interface{})
+	Logger        log.Logger
 }

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
+	"github.com/chanxuehong/mns.aliyun.v20150606/log"
 )
 
 func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.Header, reqBody []byte, respBuffer *bytes.Buffer, config mns.Config) (requestId string, statusCode int, respBody []byte, err error) {
@@ -29,7 +30,7 @@ func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.H
 	return
 }
 
-func shouldRetryRequest(err error, lg mns.Logger) bool {
+func shouldRetryRequest(err error, lg log.Logger) bool {
 	uerr, ok := err.(*url.Error)
 	if !ok {
 		return false
