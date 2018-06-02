@@ -12,6 +12,8 @@ import (
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
 	"github.com/chanxuehong/mns.aliyun.v20150606/log"
+	"net"
+	"strings"
 )
 
 func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.Header, reqBody []byte, respBuffer *bytes.Buffer, config mns.Config) (requestId string, statusCode int, respBody []byte, err error) {
@@ -31,16 +33,23 @@ func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.H
 }
 
 func shouldRetryRequest(err error, lg log.Logger) bool {
-	uerr, ok := err.(*url.Error)
-	if !ok {
+	if operr, ok := err.(*net.OpError); ok {
+		if lg != nil {
+			lg.Errorf("DoHTTP encountered an *net.OpError: %v, cause: %s", err, reflect.TypeOf(operr.Err).String())
+		}
+		if strings.Contains(err.Error(), "connection reset by peer") {
+			return true
+		}
 		return false
 	}
-	if lg != nil {
-		lg.Errorf("DoHTTP encountered an url.Error: %v, cause: %s", err, reflect.TypeOf(uerr.Err).String())
-	}
-	// TODO: 目前返回的是 io.EOF, 哪天 http 包返回别的错误需要修改这里!!!
-	if uerr.Err == io.EOF {
-		return true // http 时不时返回 Err == io.EOF 的 url.Error 错误, 一般是阿里云主动关闭了连接导致的, 可以调整参数来解决, 这里也重试几次吧
+	if uerr, ok := err.(*url.Error); ok {
+		if lg != nil {
+			lg.Errorf("DoHTTP encountered an *url.Error: %v, cause: %s", err, reflect.TypeOf(uerr.Err).String())
+		}
+		if uerr.Err == io.EOF { // TODO: 目前返回的是 io.EOF, 哪天 http 包返回别的错误需要修改这里!!!
+			return true
+		}
+		return false
 	}
 	return false
 }
