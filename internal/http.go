@@ -5,15 +5,15 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
 	"github.com/chanxuehong/mns.aliyun.v20150606/log"
-	"net"
-	"strings"
 )
 
 func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.Header, reqBody []byte, respBuffer *bytes.Buffer, config mns.Config) (requestId string, statusCode int, respBody []byte, err error) {
