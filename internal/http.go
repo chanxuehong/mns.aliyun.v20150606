@@ -8,12 +8,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 	"time"
 
 	"github.com/chanxuehong/mns.aliyun.v20150606"
-	"github.com/chanxuehong/mns.aliyun.v20150606/log"
 )
 
 func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.Header, reqBody []byte, respBuffer *bytes.Buffer, config mns.Config) (requestId string, statusCode int, respBody []byte, err error) {
@@ -25,28 +23,27 @@ func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.H
 			return
 		case err == nil:
 			return
-		case shouldRetryRequest(err, config.Logger):
+		case shouldRetryRequest(err):
 			continue
 		}
 	}
 	return
 }
 
-func shouldRetryRequest(err error, lg log.Logger) bool {
-	if operr, ok := err.(*net.OpError); ok {
-		if lg != nil {
-			lg.Errorf("DoHTTP encountered an *net.OpError: %v, cause: %s", err, reflect.TypeOf(operr.Err).String())
-		}
+// shouldRetryRequest 根据 err 判断是否需要重试
+//
+// 由于双方的 keepalive 等参数配置不一样, 可能服务器端会关闭一些 connection 而客户端没有及时发现, 会抛出一些错误, 一般通过重试可以正常的工作
+//
+// 随着标准库的更新可能会变化
+func shouldRetryRequest(err error) bool {
+	if _, ok := err.(*net.OpError); ok {
 		if strings.Contains(err.Error(), "connection reset by peer") {
 			return true
 		}
 		return false
 	}
 	if uerr, ok := err.(*url.Error); ok {
-		if lg != nil {
-			lg.Errorf("DoHTTP encountered an *url.Error: %v, cause: %s", err, reflect.TypeOf(uerr.Err).String())
-		}
-		if uerr.Err == io.EOF { // TODO: 目前返回的是 io.EOF, 哪天 http 包返回别的错误需要修改这里!!!
+		if uerr.Err == io.EOF {
 			return true
 		}
 		return false
