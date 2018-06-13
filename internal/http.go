@@ -8,23 +8,27 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
+	"github.com/chanxuehong/log"
 	"github.com/chanxuehong/mns.aliyun.v20150606"
 )
 
 func DoHTTP(ctx context.Context, httpMethod string, _url *url.URL, header http.Header, reqBody []byte, respBuffer *bytes.Buffer, config mns.Config) (requestId string, statusCode int, respBody []byte, err error) {
+	logger, _ := log.FromContext(ctx)
 	for i := 0; i < 3; i++ {
 		respBuffer.Reset()
 		requestId, statusCode, respBody, err = doHTTP(ctx, httpMethod, _url, header, reqBody, respBuffer, config)
-		switch {
-		default:
+		if err == nil {
 			return
-		case err == nil:
+		}
+		if logger != nil {
+			logger.Error("mns: DoHTTP encountered an error", "error-type", reflect.TypeOf(err).String(), "error", err.Error())
+		}
+		if !shouldRetryRequest(err) {
 			return
-		case shouldRetryRequest(err):
-			continue
 		}
 	}
 	return
