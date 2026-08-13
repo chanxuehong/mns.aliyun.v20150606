@@ -22,8 +22,9 @@ type Queue struct {
 }
 
 // New 创建一个新的 Queue
-//  endpoint: http://$AccountId.mns.<Region>.aliyuncs.com
-//  queue:    queue name
+//
+//	endpoint: http://$AccountId.mns.<Region>.aliyuncs.com
+//	queue:    queue name
 func New(endpoint, queue string, config mns.Config) *Queue {
 	endpoint = strings.TrimRight(endpoint, "/")
 	if config.HttpClient == nil {

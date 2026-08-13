@@ -19,7 +19,8 @@ func FormatDate(t time.Time) string {
 }
 
 // ContentMD5 returns md5 of body.
-//  https://tools.ietf.org/html/rfc1864
+//
+//	https://tools.ietf.org/html/rfc1864
 func ContentMD5(b []byte) string {
 	sum := md5.Sum(b)
 	return base64.StdEncoding.EncodeToString(sum[:])

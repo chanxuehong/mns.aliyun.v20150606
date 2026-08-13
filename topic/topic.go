@@ -17,8 +17,9 @@ type Topic struct {
 }
 
 // New 创建一个新的 Topic
-//  endpoint: http://$AccountId.mns.<Region>.aliyuncs.com
-//  topic:    topic name
+//
+//	endpoint: http://$AccountId.mns.<Region>.aliyuncs.com
+//	topic:    topic name
 func New(endpoint, topic string, config mns.Config) *Topic {
 	endpoint = strings.TrimRight(endpoint, "/")
 	if config.HttpClient == nil {
